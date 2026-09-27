@@ -1,23 +1,13 @@
-from typing import Literal
-from pydantic import BaseModel, Field
+from typing import Literal, Optional
+from pydantic import BaseModel
 
-SurveyType = Literal[
-    "qualitative",
-    "quantitative",
-    "discovery",
-]
-
-ScoreMode = Literal[
-    "explicit",
-    "inferred",
-    "none",
-]
 
 Category = Literal[
     "navegacao",
     "clareza",
     "performance",
     "erro",
+    "elogio",
     "outro",
 ]
 
@@ -27,47 +17,40 @@ Sentiment = Literal[
     "negativo",
 ]
 
-Signal = Literal[
-    "frustracao",
-    "duvida",
-    "elogio",
-    "neutro",
+SurveyMode = Literal[
+    "quantitativa",
+    "qualitativa",
+    "discovery",
 ]
 
 
-class SurveyCreate(BaseModel):
-    title: str
-    question: str
-    survey_type: SurveyType
-
-    context: str | None = None
-    profile: str | None = None
-
-    options: list[str] | None = None
-
-    validity_days: int = 30
-    score_mode: ScoreMode = "explicit"
-
-
 class ResponseCreate(BaseModel):
-    score: int | None = Field(
-        default=None,
-        ge=1,
-        le=10,
-    )
+    # Pesquisas conversacionais (qualitativa / discovery) não têm
+    # uma nota numérica associada, por isso o score é opcional.
+    score: Optional[int] = None
     text: str
+    mode: SurveyMode = "quantitativa"
+
+
+class ChatMessage(BaseModel):
+    role: Literal["assistant", "user"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    mode: Literal["qualitativa", "discovery"]
+    history: list[ChatMessage] = []
+
+
+class ChatTurnOutput(BaseModel):
+    reply: str
+    finished: bool
 
 
 class FeedbackItem(BaseModel):
     response_id: int
     category: Category
     sentiment: Sentiment
-    signal: Signal
-    inferred_score: int | None = Field(
-        default=None,
-        ge=1,
-        le=10,
-    )
     summary: str
 
 
@@ -82,4 +65,3 @@ class ReportOutput(BaseModel):
 
 class ReviewAnalysis(BaseModel):
     category: Category
-    reviewer: str = "Squad"

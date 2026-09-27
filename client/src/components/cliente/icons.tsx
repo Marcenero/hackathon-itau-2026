@@ -1,30 +1,89 @@
-type ThankYouProps = {
-    points?: number;
-};
-
-export default function ThankYou({ points }: ThankYouProps) {
+export function BarsIcon({ className }: { className?: string }) {
     return (
-        <main className="flex min-h-[75vh] items-center justify-center bg-[#FFF8F3] px-6">
-            <div className="w-full max-w-md rounded-3xl bg-white p-10 text-center shadow-lg shadow-black/5">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F6F0] text-2xl text-[#16865C]">
-                    ✓
-                </div>
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className={className}
+        >
+            <rect x="4" y="12" width="4" height="8" rx="1" fill="currentColor" />
+            <rect x="10" y="8" width="4" height="12" rx="1" fill="currentColor" />
+            <rect x="16" y="4" width="4" height="16" rx="1" fill="currentColor" />
+        </svg>
+    );
+}
 
-                <h1 className="mt-6 text-2xl font-bold">
-                    Obrigado pelo seu feedback
-                </h1>
+export function ChatBubbleIcon({ className }: { className?: string }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className={className}
+        >
+            <path
+                d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
 
-                <p className="mt-3 leading-6 text-[#666]">
-                    Sua resposta foi registrada e poderá ajudar a melhorar
-                    essa experiência.
-                </p>
+export function PeopleIcon({ className }: { className?: string }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className={className}
+        >
+            <circle cx="9" cy="8" r="3" fill="currentColor" />
+            <circle cx="17" cy="9" r="2.4" fill="currentColor" opacity="0.7" />
+            <path
+                d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+            />
+            <path
+                d="M15.5 14.2c2.5.4 4.5 2.6 4.5 5.3"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+            />
+        </svg>
+    );
+}
 
-                {typeof points === "number" && (
-                    <p className="mt-5 inline-flex items-center gap-1 rounded-full bg-[#FFF4D9] px-3 py-1 text-sm font-semibold text-[#8A5A00]">
-                        ⭐ +{points} pts
-                    </p>
-                )}
-            </div>
-        </main>
+export function ArrowLeftIcon({ className }: { className?: string }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className={className}
+        >
+            <path
+                d="M15 5 8 12l7 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
+
+export function SendIcon({ className }: { className?: string }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className={className}
+        >
+            <path
+                d="M4 12h15m0 0-6-6m6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
     );
 }
