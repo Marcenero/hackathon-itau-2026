@@ -68,7 +68,7 @@ class Response(Base):
         nullable=False,
     )
 
-    score = Column(Integer, nullable=False)
+    score = Column(Integer, nullable=True)
     text = Column(Text, nullable=False)
 
     created_at = Column(
@@ -91,6 +91,18 @@ class Analysis(Base):
 
     category = Column(String(50), nullable=False)
     sentiment = Column(String(30), nullable=False)
+
+    signal = Column(
+        String(30),
+        nullable=False,
+        default="neutro",
+    )
+
+    inferred_score = Column(
+        Integer,
+        nullable=True,
+    )
+
     summary = Column(Text, nullable=False)
 
     final_category = Column(
@@ -106,6 +118,16 @@ class Analysis(Base):
     created_at = Column(
         DateTime,
         default=datetime.utcnow,
+    )
+
+    reviewed_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+    reviewed_by = Column(
+        String(100),
+        nullable=True,
     )
 
 

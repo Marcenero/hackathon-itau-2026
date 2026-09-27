@@ -91,18 +91,6 @@ export default function SquadPage() {
         Voz do cliente · Squad
       </p>
 
-      <div className="grid grid-cols-2 gap-4 mt-8">
-        <Card
-          title="Respostas"
-          value={data.total_responses}
-        />
-
-        <Card
-          title="Nota média"
-          value={data.average_score}
-        />
-      </div>
-
       {data.inferred_scores_count > 0 && (
         <p className="mt-3 text-xs text-[#777]">
             ✨ {data.inferred_scores_count} avaliação

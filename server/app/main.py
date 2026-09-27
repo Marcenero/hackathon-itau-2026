@@ -1,4 +1,5 @@
 from collections import Counter
+from datetime import datetime
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from .database import Base, engine, get_db
 from .models import Survey, Response, Analysis, Report
-from .schemas import ResponseCreate, ReviewAnalysis
+from .schemas import ResponseCreate, ReviewAnalysis, SurveyCreate
 from .services.pulso import analyze_feedbacks, generate_report
 
 
@@ -158,6 +159,7 @@ def analyze_survey(
                 response_id=item.response_id,
                 category=item.category,
                 sentiment=item.sentiment,
+                signal=item.signal,
                 inferred_score=item.inferred_score,
                 summary=item.summary,
             )
@@ -287,6 +289,43 @@ def dashboard(
         .first()
     )
 
+    survey = db.get(Survey, survey_id)
+
+    latest_response_at = (
+        max(r.created_at for r in responses)
+        if responses
+        else None
+    )
+
+    freshness_status = "no_data"
+
+    if latest_response_at:
+        age = datetime.utcnow() - latest_response_at
+        age_days = age.total_seconds() / 86400
+
+        ratio = age_days / survey.validity_days
+
+        if ratio <= 0.5:
+            freshness_status = "current"
+        elif ratio <= 1:
+            freshness_status = "attention"
+        else:
+            freshness_status = "revalidate"
+
+    reviewed_count = sum(
+        1
+        for a in analyses
+        if a.status == "reviewed"
+    )
+
+    validation_percentage = (
+        round(
+            reviewed_count / len(analyses) * 100
+        )
+        if analyses
+        else 0
+    )
+
     return {
         "total_responses": total,
         "average_score": average_score,
@@ -317,6 +356,16 @@ def dashboard(
             else None
         ),
         "qualitative_summary": qualitative_groups,
+        "freshness": {
+            "last_response_at": latest_response_at,
+            "validity_days": survey.validity_days,
+            "status": freshness_status,
+        },
+        "validation": {
+            "reviewed": reviewed_count,
+            "total": len(analyses),
+            "percentage": validation_percentage,
+        },
     }
 
 @app.post("/surveys/{survey_id}/report")
@@ -413,6 +462,8 @@ def review_analysis(
 
     analysis.final_category = payload.category
     analysis.status = "reviewed"
+    analysis.reviewed_by = payload.reviewer
+    analysis.reviewed_at = datetime.utcnow()
 
     db.commit()
 
