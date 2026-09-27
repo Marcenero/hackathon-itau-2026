@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: pulso
+      POSTGRES_USER: pulso
+      POSTGRES_PASSWORD: pulso
+    ports:
+      - "5432:5432"
+    volumes:
+      - pulso_data:/var/lib/postgresql/pulso_data
+    
+volumes:
+  pulso_data:
