@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { SurveyMode } from "./types";
-import { BarsIcon, ChatBubbleIcon, PeopleIcon } from "./icons";
+import { BarsIcon, ChatBubbleIcon, PeopleIcon } from "./cliente/icons";
 
 type SurveyTypeSelectProps = {
     onSelect: (mode: SurveyMode) => void;

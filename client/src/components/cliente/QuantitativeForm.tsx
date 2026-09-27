@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { API_URL } from "@/lib/api";
-import { ArrowLeftIcon, SendIcon } from "./icons";
+import { ArrowLeftIcon, SendIcon } from "./cliente/icons";
 import { CHAT_MODE_CONFIG, type ChatMessage, type ChatMode } from "./types";
 
 type ChatSurveyProps = {

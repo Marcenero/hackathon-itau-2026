@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 
+import Link from "next/link";
+
 import Sentiment from "@/components/Sentiment";
 import CategoryBadge from "@/components/CategoryBadge";
 import FreshnessBadge from "@/components/FreshnessBadge";
@@ -87,9 +89,16 @@ export default function SquadPage() {
         Pulso
       </h1>
 
-      <p className="text-gray-500">
-        Voz do cliente · Squad
+      <p className="text-gray-500 mb-10">
+        Voz do cliente - Squad
       </p>
+
+      <Link
+        href="/squad/pesquisas"
+        className="rounded-xl bg-[#003C7A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#002E5D]"
+      >
+        Gerenciar pesquisas
+      </Link>
 
       {data.inferred_scores_count > 0 && (
         <p className="mt-3 text-xs text-[#777]">
@@ -322,6 +331,28 @@ export default function SquadPage() {
                       Validar análise
                   </button>
               )}
+
+              {item.score !== null ? (
+                <p className="mt-3 text-sm text-[#555]">
+                    Avaliação:{" "}
+                    <strong>{item.score}/10</strong>
+
+                    <span className="ml-2 text-xs text-[#888]">
+                        informada pelo cliente
+                    </span>
+                </p>
+            ) : item.inferred_score !== null ? (
+                <p className="mt-3 text-sm text-[#555]">
+                    Avaliação estimada:{" "}
+                    <strong>
+                        {item.inferred_score}/10
+                    </strong>
+
+                    <span className="ml-2 text-xs text-[#003C7A]">
+                        ✨ inferida pelo Pulso
+                    </span>
+                </p>
+            ) : null}
             </div>
           ))}
         </div>

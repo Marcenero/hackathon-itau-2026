@@ -66,6 +66,9 @@ def get_survey(
         "id": survey.id,
         "title": survey.title,
         "question": survey.question,
+        "survey_type": survey.survey_type,
+        "score_mode": survey.score_mode,
+        "options": survey.options,
     }
 
 @app.post("/surveys/{survey_id}/responses")
@@ -82,9 +85,24 @@ def create_response(
             detail="Pesquisa não encontrada",
         )
 
+    if (
+        survey.score_mode == "explicit"
+        and payload.score is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Esta pesquisa exige uma nota de 1 a 10",
+        )
+
+    score = (
+        payload.score
+        if survey.score_mode == "explicit"
+        else None
+    )
+
     response = Response(
         survey_id=survey_id,
-        score=payload.score,
+        score=score,
         text=payload.text,
         mode=payload.mode,
     )
@@ -239,6 +257,13 @@ def dashboard(
                 ),
                 "original_category": a.category,
                 "sentiment": a.sentiment,
+                "signal": a.signal,
+
+                 "score":
+                    response_by_id[
+                        a.response_id
+                    ].score,
+
                 "summary": a.summary,
                 "status": a.status,
             }
