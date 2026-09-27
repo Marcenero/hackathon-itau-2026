@@ -12,6 +12,9 @@ export default function SquadPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  const [modalEnviarAberto, setModalEnviarAberto] =
+    useState(false);
+
   async function carregar() {
     const response = await fetch(
       `${API_URL}/surveys/1/dashboard`,
@@ -55,30 +58,33 @@ export default function SquadPage() {
     setLoading(false);
   }
 
-  if (!data) {
-    return <main className="p-10">Carregando...</main>;
-  }
-
   async function validarAnalise(item: any) {
     await fetch(
-        `${API_URL}/analyses/${item.id}`,
-        {
-            method: "PATCH",
+      `${API_URL}/analyses/${item.id}`,
+      {
+        method: "PATCH",
 
-            headers: {
-                "Content-Type":
-                    "application/json",
-            },
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-            body: JSON.stringify({
-                category: item.category,
-                reviewer: "Designer",
-            }),
-        }
+        body: JSON.stringify({
+          category: item.category,
+          reviewer: "Designer",
+        }),
+      }
     );
 
     await carregar();
-}
+  }
+
+  if (!data) {
+    return (
+      <main className="p-10">
+        Carregando...
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-6xl mx-auto p-8">
@@ -93,39 +99,39 @@ export default function SquadPage() {
 
       {data.inferred_scores_count > 0 && (
         <p className="mt-3 text-xs text-[#777]">
-            ✨ {data.inferred_scores_count} avaliação
-            {data.inferred_scores_count !== 1
-                ? "ões foram estimadas"
-                : " foi estimada"}{" "}
-            pelo Pulso a partir do feedback textual.
+          {data.inferred_scores_count} avaliação
+          {data.inferred_scores_count !== 1
+            ? "ões foram estimadas"
+            : " foi estimada"}{" "}
+          pelo Pulso a partir do feedback textual.
         </p>
-    )}
+      )}
 
       <div className="grid grid-cols-2 gap-4 mt-8">
         <Card
-            title="Respostas"
-            value={data.total_responses}
+          title="Respostas"
+          value={data.total_responses}
         />
 
         <Card
-            title="Nota média"
-            value={data.average_score ?? "—"}
+          title="Nota média"
+          value={data.average_score ?? "—"}
         />
-    </div>
+      </div>
 
-    {data.freshness && (
+      {data.freshness && (
         <div className="mt-4">
-            <FreshnessBadge
-                status={data.freshness.status}
-                lastResponseAt={
-                    data.freshness.last_response_at
-                }
-                validityDays={
-                    data.freshness.validity_days
-                }
-            />
+          <FreshnessBadge
+            status={data.freshness.status}
+            lastResponseAt={
+              data.freshness.last_response_at
+            }
+            validityDays={
+              data.freshness.validity_days
+            }
+          />
         </div>
-    )}
+      )}
 
       <div className="flex gap-3 mt-8">
         <button
@@ -134,7 +140,7 @@ export default function SquadPage() {
         >
           {loading
             ? "Processando..."
-            : "✨ Analisar com Pulso"}
+            : "Analisar com Pulso"}
         </button>
 
         <button
@@ -173,7 +179,7 @@ export default function SquadPage() {
       {data.report && (
         <section className="mt-10 border rounded-2xl p-6">
           <p className="text-sm">
-            ✨ INSIGHT PULSO
+            INSIGHT PULSO
           </p>
 
           <p className="mt-3 text-lg">
@@ -192,98 +198,98 @@ export default function SquadPage() {
 
       {data.qualitative_summary && (
         <section className="mt-10">
-            <h2 className="text-xl font-semibold">
-                Sinais qualitativos
-            </h2>
+          <h2 className="text-xl font-semibold">
+            Sinais qualitativos
+          </h2>
 
-            <p className="mt-1 text-sm text-[#666]">
-                Como os clientes estão reagindo à experiência.
-            </p>
+          <p className="mt-1 text-sm text-[#666]">
+            Como os clientes estão reagindo à experiência.
+          </p>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-                {Object.entries(
-                    data.qualitative_summary
-                ).map(([signal, group]: any) => (
-                    <div
-                        key={signal}
-                        className="rounded-2xl border border-[#E5E5E5] bg-white p-5"
-                    >
-                        <div className="flex items-center justify-between">
-                            <strong className="capitalize">
-                                {signal}
-                            </strong>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {Object.entries(
+              data.qualitative_summary
+            ).map(([signal, group]: any) => (
+              <div
+                key={signal}
+                className="rounded-2xl border border-[#E5E5E5] bg-white p-5"
+              >
+                <div className="flex items-center justify-between">
+                  <strong className="capitalize">
+                    {signal}
+                  </strong>
 
-                            <span className="text-sm text-[#777]">
-                                {group.count} feedback
-                                {group.count !== 1
-                                    ? "s"
-                                    : ""}
-                            </span>
-                        </div>
+                  <span className="text-sm text-[#777]">
+                    {group.count} feedback
+                    {group.count !== 1
+                      ? "s"
+                      : ""}
+                  </span>
+                </div>
 
-                        <div className="mt-4 space-y-3">
-                            {group.examples.map(
-                                (example: any) => (
-                                    <div
-                                        key={
-                                            example.response_id
-                                        }
-                                        className="border-l-4 border-[#EC7000] pl-4"
-                                    >
-                                        <p className="text-sm italic leading-6 text-[#555]">
-                                            “{example.text}”
-                                        </p>
+                <div className="mt-4 space-y-3">
+                  {group.examples.map(
+                    (example: any) => (
+                      <div
+                        key={
+                          example.response_id
+                        }
+                        className="border-l-4 border-[#EC7000] pl-4"
+                      >
+                        <p className="text-sm italic leading-6 text-[#555]">
+                          “{example.text}”
+                        </p>
 
-                                        {example.validated && (
-                                            <span className="mt-2 inline-block text-xs font-semibold text-[#16865C]">
-                                                ✓ Validado
-                                            </span>
-                                        )}
-                                    </div>
-                                )
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
+                        {example.validated && (
+                          <span className="mt-2 inline-block text-xs font-semibold text-[#16865C]">
+                            Validado
+                          </span>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
-    )}
+      )}
 
       {data.validation && (
         <section className="mt-10">
-            <h2 className="text-xl font-semibold">
-                Governança
-            </h2>
+          <h2 className="text-xl font-semibold">
+            Governança
+          </h2>
 
-            <div className="mt-4 rounded-2xl border border-[#E5E5E5] bg-white p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="font-semibold">
-                            Validação humana
-                        </p>
+          <div className="mt-4 rounded-2xl border border-[#E5E5E5] bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold">
+                  Validação humana
+                </p>
 
-                        <p className="mt-1 text-sm text-[#666]">
-                            {data.validation.reviewed} de{" "}
-                            {data.validation.total} análises revisadas
-                        </p>
-                    </div>
+                <p className="mt-1 text-sm text-[#666]">
+                  {data.validation.reviewed} de{" "}
+                  {data.validation.total} análises revisadas
+                </p>
+              </div>
 
-                    <strong className="text-2xl text-[#16865C]">
-                        {data.validation.percentage}%
-                    </strong>
-                </div>
-
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#EEE]">
-                    <div
-                        className="h-full rounded-full bg-[#16865C]"
-                        style={{
-                            width: `${data.validation.percentage}%`,
-                        }}
-                    />
-                </div>
+              <strong className="text-2xl text-[#16865C]">
+                {data.validation.percentage}%
+              </strong>
             </div>
+
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#EEE]">
+              <div
+                className="h-full rounded-full bg-[#16865C]"
+                style={{
+                  width: `${data.validation.percentage}%`,
+                }}
+              />
+            </div>
+          </div>
         </section>
-    )}
+      )}
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold">
@@ -297,40 +303,160 @@ export default function SquadPage() {
               className="rounded-2xl border border-[#e5e5e5] bg-white p-5"
             >
               <div className="flex items-center justify-between gap-3">
-                <CategoryBadge category={item.category} />
+                <CategoryBadge
+                  category={item.category}
+                />
 
-                <Sentiment value={item.sentiment} />
+                <Sentiment
+                  value={item.sentiment}
+                />
               </div>
 
               <div className="mt-3">
-                  <ValidationBadge
-                      status={item.status}
-                  />
+                <ValidationBadge
+                  status={item.status}
+                />
               </div>
 
               <p className="mt-4 text-sm leading-6 text-[#555]">
                 {item.summary}
               </p>
 
-              {item.status !== "reviewed" && (
+              {/* AÇÕES */}
+              <div className="mt-5 flex flex-wrap gap-2">
+
+                <button
+                  className="rounded-xl border border-[#003087] px-4 py-2 text-sm font-semibold text-[#003087] transition hover:bg-[#eef2ff]"
+                >
+                  Visualizar
+                </button>
+
+                <button
+                  className="rounded-xl border border-[#777] px-4 py-2 text-sm font-semibold text-[#555] transition hover:bg-[#f5f5f5]"
+                >
+                  Editar
+                </button>
+
+                <button
+                  onClick={() =>
+                    setModalEnviarAberto(true)
+                  }
+                  className="rounded-xl bg-[#003087] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#00256b]"
+                >
+                  Enviar
+                </button>
+
+                <button
+                  className="rounded-xl border border-[#dc2626] px-4 py-2 text-sm font-semibold text-[#dc2626] transition hover:bg-[#fef2f2]"
+                >
+                  Deletar
+                </button>
+
+                {item.status !== "reviewed" && (
                   <button
-                      onClick={() =>
-                          validarAnalise(item)
-                      }
-                      className="mt-4 rounded-xl border border-[#16865C] px-4 py-2 text-sm font-semibold text-[#16865C] transition hover:bg-[#E8F6F0]"
+                    onClick={() =>
+                      validarAnalise(item)
+                    }
+                    className="rounded-xl border border-[#16865C] px-4 py-2 text-sm font-semibold text-[#16865C] transition hover:bg-[#E8F6F0]"
                   >
-                      Validar análise
+                    Validar análise
                   </button>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
+      {/* MODAL DE ENVIO */}
+      {modalEnviarAberto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() =>
+            setModalEnviarAberto(false)
+          }
+        >
+          <div
+            className="relative w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+            <button
+              onClick={() =>
+                setModalEnviarAberto(false)
+              }
+              className="absolute right-4 top-4 text-2xl text-[#999] hover:text-[#333]"
+            >
+              ×
+            </button>
+
+            <h3 className="text-xl font-semibold text-[#003087]">
+              Enviar análise
+            </h3>
+
+            <p className="mt-2 text-sm text-[#666]">
+              Escolha como deseja enviar esta análise.
+            </p>
+
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+              <button
+                className="rounded-xl border-2 border-[#003087] p-4 text-left text-[#003087] transition hover:bg-[#eef2ff]"
+              >
+                <strong className="block">
+                  Enviar por e-mail
+                </strong>
+
+                <span className="mt-1 block text-xs text-[#666]">
+                  Compartilhar a análise por e-mail.
+                </span>
+              </button>
+
+              <button
+                className="rounded-xl border-2 border-[#003087] p-4 text-left text-[#003087] transition hover:bg-[#eef2ff]"
+              >
+                <strong className="block">
+                  Enviar para Squad
+                </strong>
+
+                <span className="mt-1 block text-xs text-[#666]">
+                  Compartilhar com a equipe responsável.
+                </span>
+              </button>
+
+              <button
+                className="rounded-xl border-2 border-[#003087] p-4 text-left text-[#003087] transition hover:bg-[#eef2ff]"
+              >
+                <strong className="block">
+                  Enviar para Designer
+                </strong>
+
+                <span className="mt-1 block text-xs text-[#666]">
+                  Encaminhar para validação ou uso no design.
+                </span>
+              </button>
+
+              <button
+                className="rounded-xl border-2 border-[#003087] p-4 text-left text-[#003087] transition hover:bg-[#eef2ff]"
+              >
+                <strong className="block">
+                  Enviar para Produto
+                </strong>
+
+                <span className="mt-1 block text-xs text-[#666]">
+                  Compartilhar com o time de produto.
+                </span>
+              </button>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
-
 
 function Card({
   title,
