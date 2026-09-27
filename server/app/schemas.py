@@ -1,13 +1,23 @@
 from typing import Literal
 from pydantic import BaseModel
 
+SurveyType = Literal[
+    "qualitative",
+    "quantitative",
+    "discovery",
+]
+
+ScoreMode = Literal[
+    "explicit",
+    "inferred",
+    "none",
+]
 
 Category = Literal[
     "navegacao",
     "clareza",
     "performance",
     "erro",
-    "elogio",
     "outro",
 ]
 
@@ -16,6 +26,27 @@ Sentiment = Literal[
     "neutro",
     "negativo",
 ]
+
+Signal = Literal[
+    "frustracao",
+    "duvida",
+    "elogio",
+    "neutro",
+]
+
+
+class SurveyCreate(BaseModel):
+    title: str
+    question: str
+    survey_type: SurveyType
+
+    context: str | None = None
+    profile: str | None = None
+
+    options: list[str] | None = None
+
+    validity_days: int = 30
+    score_mode: ScoreMode = "explicit"
 
 
 class ResponseCreate(BaseModel):
@@ -27,6 +58,7 @@ class FeedbackItem(BaseModel):
     response_id: int
     category: Category
     sentiment: Sentiment
+    inferred_score: int | None = None
     summary: str
 
 

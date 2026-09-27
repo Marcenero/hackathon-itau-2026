@@ -40,6 +40,13 @@ export default function Header() {
                     >
                         Dashboard da squad
                     </Link>
+
+                    <Link
+                        href="/squad/pesquisas"
+                        className="rounded-lg px-4 py-2 text-sm font-medium text-[#444] transition hover:bg-[#FFF8F3]"
+                    >
+                        Pesquisas
+                    </Link>
                 </nav>
             </div>
         </header>

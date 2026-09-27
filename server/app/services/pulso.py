@@ -84,6 +84,23 @@ Produza:
 Não recomende uma decisão.
 Não diga que algo é causa sem evidência.
 A decisão final pertence à squad.
+
+Além de estruturar o feedback:
+
+Se houver uma nota explícita fornecida pelo cliente,
+NÃO estime uma nova nota e retorne inferred_score = null.
+
+Se não houver nota explícita, estime uma avaliação
+de 1 a 10 com base exclusivamente no relato.
+
+Use esta referência:
+
+1 a 3: experiência claramente negativa
+4 a 6: experiência negativa ou neutra com ressalvas
+7 a 8: experiência predominantemente positiva
+9 a 10: experiência claramente positiva
+
+Não invente contexto.
 """
 
     response = client.models.generate_content(

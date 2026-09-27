@@ -49,6 +49,37 @@ def seed():
     finally:
         db.close()
 
+@app.post("/surveys")
+def create_survey(
+    payload: SurveyCreate,
+    db: Session = Depends(get_db),
+):
+    survey = Survey(
+        title=payload.title,
+        question=payload.question,
+        survey_type=payload.survey_type,
+        context=payload.context,
+        profile=payload.profile,
+        options=payload.options,
+        validity_days=payload.validity_days,
+        score_mode=payload.score_mode,
+    )
+
+    db.add(survey)
+    db.commit()
+    db.refresh(survey)
+
+    return {
+        "id": survey.id,
+        "title": survey.title,
+    }
+
+@app.get("/surveys")
+def list_surveys(
+    db: Session = Depends(get_db),
+):
+    return db.query(Survey).all()
+
 @app.get("/surveys/{survey_id}")
 def get_survey(
     survey_id: int,
@@ -127,6 +158,7 @@ def analyze_survey(
                 response_id=item.response_id,
                 category=item.category,
                 sentiment=item.sentiment,
+                inferred_score=item.inferred_score,
                 summary=item.summary,
             )
 
@@ -165,15 +197,73 @@ def dashboard(
         else []
     )
 
+    response_by_id = {
+        r.id: r
+        for r in responses
+    }
+
+    qualitative_groups = {}
+
+    for analysis in analyses:
+        signal = analysis.signal
+
+        if signal not in qualitative_groups:
+            qualitative_groups[signal] = {
+                "count": 0,
+                "examples": [],
+            }
+
+        qualitative_groups[signal]["count"] += 1
+
+        if len(
+            qualitative_groups[signal]["examples"]
+        ) < 2:
+            response = response_by_id[
+                analysis.response_id
+            ]
+
+            qualitative_groups[signal][
+                "examples"
+            ].append({
+                "response_id": response.id,
+                "text": response.text,
+                "validated":
+                    analysis.status == "reviewed",
+            })
+
     total = len(responses)
 
+    analysis_by_response = {
+        a.response_id: a
+        for a in analyses
+    }
+
+    scores = []
+    inferred_count = 0
+
+    for response in responses:
+        if response.score is not None:
+            scores.append(response.score)
+
+        else:
+            analysis = analysis_by_response.get(
+                response.id
+            )
+
+            if (
+                analysis
+                and analysis.inferred_score is not None
+            ):
+                scores.append(
+                    analysis.inferred_score
+                )
+
+                inferred_count += 1
+
     average_score = (
-        round(
-            sum(r.score for r in responses) / total,
-            1,
-        )
-        if total
-        else 0
+        round(sum(scores) / len(scores), 1)
+        if scores
+        else None
     )
 
     categories = Counter(
@@ -201,6 +291,7 @@ def dashboard(
         "total_responses": total,
         "average_score": average_score,
         "categories": percentages,
+        "inferred_scores_count": inferred_count,
         "analyses": [
             {
                 "id": a.id,
@@ -225,6 +316,7 @@ def dashboard(
             if latest_report
             else None
         ),
+        "qualitative_summary": qualitative_groups,
     }
 
 @app.post("/surveys/{survey_id}/report")
