@@ -1,0 +1,10 @@
+# Arquivos de ambiente
+.env
+server/.env
+client/.env.local
+
+# Diretórios de ambiente, dependências e cache
+.venv/
+__pycache__/
+node_modules/
+.next/
