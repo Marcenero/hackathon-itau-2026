@@ -51,20 +51,23 @@ Resposta: {r.text}
         - sinal
         - resumo
 
-        Se a nota fornecida for nula, estime inferred_score
-        de 1 a 10 apenas com base no relato.
+        REGRAS PARA inferred_score:
 
-        1 a 3: experiência claramente negativa
-        4 a 6: negativa ou neutra com ressalvas
-        7 a 8: predominantemente positiva
-        9 a 10: claramente positiva
+        - Se "Nota" possuir um valor de 1 a 10:
+        retorne inferred_score = null.
 
-        Se houver nota explícita:
-        inferred_score = null.
+        - Se "Nota" for None ou nula:
+        estime inferred_score entre 1 e 10
+        exclusivamente a partir do relato do cliente.
 
-        Não calcule métricas.
-        Não recomende mudanças no produto.
-        Não invente informações.
+        Referência:
+        - 1 a 3: experiência claramente negativa
+        - 4 a 6: experiência negativa ou neutra com ressalvas
+        - 7 a 8: experiência predominantemente positiva
+        - 9 a 10: experiência claramente positiva
+
+        A nota inferida representa uma estimativa da percepção
+        expressa no texto. Não invente contexto.
 
         Feedbacks:
 

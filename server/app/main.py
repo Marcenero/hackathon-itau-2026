@@ -81,6 +81,32 @@ def list_surveys(
 ):
     return db.query(Survey).all()
 
+@app.get("/surveys")
+def list_surveys(
+    db: Session = Depends(get_db),
+):
+    surveys = (
+        db.query(Survey)
+        .order_by(Survey.created_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": survey.id,
+            "title": survey.title,
+            "question": survey.question,
+            "survey_type": survey.survey_type,
+            "context": survey.context,
+            "profile": survey.profile,
+            "options": survey.options,
+            "validity_days": survey.validity_days,
+            "score_mode": survey.score_mode,
+            "created_at": survey.created_at,
+        }
+        for survey in surveys
+    ]
+
 @app.get("/surveys/{survey_id}")
 def get_survey(
     survey_id: int,
@@ -98,6 +124,9 @@ def get_survey(
         "id": survey.id,
         "title": survey.title,
         "question": survey.question,
+        "survey_type": survey.survey_type,
+        "score_mode": survey.score_mode,
+        "options": survey.options,
     }
 
 @app.post("/surveys/{survey_id}/responses")
@@ -114,9 +143,24 @@ def create_response(
             detail="Pesquisa não encontrada",
         )
 
+    if (
+        survey.score_mode == "explicit"
+        and payload.score is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Esta pesquisa exige uma nota de 1 a 10",
+        )
+
+    score = (
+        payload.score
+        if survey.score_mode == "explicit"
+        else None
+    )
+
     response = Response(
         survey_id=survey_id,
-        score=payload.score,
+        score=score,
         text=payload.text,
     )
 
@@ -241,7 +285,6 @@ def dashboard(
     }
 
     scores = []
-    inferred_count = 0
 
     for response in responses:
         if response.score is not None:
@@ -259,8 +302,6 @@ def dashboard(
                 scores.append(
                     analysis.inferred_score
                 )
-
-                inferred_count += 1
 
     average_score = (
         round(sum(scores) / len(scores), 1)
@@ -330,7 +371,6 @@ def dashboard(
         "total_responses": total,
         "average_score": average_score,
         "categories": percentages,
-        "inferred_scores_count": inferred_count,
         "analyses": [
             {
                 "id": a.id,
@@ -341,6 +381,13 @@ def dashboard(
                 ),
                 "original_category": a.category,
                 "sentiment": a.sentiment,
+                "signal": a.signal,
+
+                 "score":
+                    response_by_id[
+                        a.response_id
+                    ].score,
+
                 "summary": a.summary,
                 "status": a.status,
             }

@@ -63,7 +63,11 @@ class FeedbackItem(BaseModel):
     category: Category
     sentiment: Sentiment
     signal: Signal
-    inferred_score: int | None = None
+    inferred_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10,
+    )
     summary: str
 
 
