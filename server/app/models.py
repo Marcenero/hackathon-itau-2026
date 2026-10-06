@@ -7,6 +7,7 @@ from sqlalchemy import (
     Text,
     ForeignKey,
     DateTime,
+    JSON,
 )
 
 from .database import Base
@@ -19,6 +20,36 @@ class Survey(Base):
 
     title = Column(String(200), nullable=False)
     question = Column(Text, nullable=False)
+
+    survey_type = Column(
+        String(30),
+        nullable=False,
+        default="qualitative",
+    )
+
+    context = Column(Text, nullable=True)
+
+    profile = Column(
+        String(250),
+        nullable=True,
+    )
+
+    options = Column(
+        JSON,
+        nullable=True,
+    )
+
+    validity_days = Column(
+        Integer,
+        nullable=False,
+        default=30,
+    )
+
+    score_mode = Column(
+        String(20),
+        nullable=False,
+        default="explicit",
+    )
 
     created_at = Column(
         DateTime,
@@ -37,7 +68,7 @@ class Response(Base):
         nullable=False,
     )
 
-    score = Column(Integer, nullable=False)
+    score = Column(Integer, nullable=True)
     text = Column(Text, nullable=False)
 
     created_at = Column(
@@ -60,6 +91,18 @@ class Analysis(Base):
 
     category = Column(String(50), nullable=False)
     sentiment = Column(String(30), nullable=False)
+
+    signal = Column(
+        String(30),
+        nullable=False,
+        default="neutro",
+    )
+
+    inferred_score = Column(
+        Integer,
+        nullable=True,
+    )
+
     summary = Column(Text, nullable=False)
 
     final_category = Column(
@@ -75,6 +118,16 @@ class Analysis(Base):
     created_at = Column(
         DateTime,
         default=datetime.utcnow,
+    )
+
+    reviewed_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+    reviewed_by = Column(
+        String(100),
+        nullable=True,
     )
 
 

@@ -23,32 +23,53 @@ Resposta: {r.text}
     )
 
     prompt = f"""
-Você é o Pulso, um agente de apoio a uma squad de produto.
+        Você é o Pulso, um agente de apoio a uma squad de produto.
 
-Sua única tarefa é estruturar feedbacks de clientes.
+        Sua tarefa é estruturar feedbacks de clientes.
 
-Categorias permitidas:
-- navegacao
-- clareza
-- performance
-- erro
-- elogio
-- outro
+        Categorias permitidas:
+        - navegacao
+        - clareza
+        - performance
+        - erro
+        - outro
 
-Sentimentos permitidos:
-- positivo
-- neutro
-- negativo
+        Sentimentos permitidos:
+        - positivo
+        - neutro
+        - negativo
 
-Não calcule métricas.
-Não recomende mudanças no produto.
-Não invente informações.
-Analise apenas o texto fornecido.
+        Sinais permitidos:
+        - frustracao
+        - duvida
+        - elogio
+        - neutro
 
-Feedbacks:
+        Para cada feedback, retorne:
+        - categoria
+        - sentimento
+        - sinal
+        - resumo
 
-{feedback_text}
-"""
+        Se a nota fornecida for nula, estime inferred_score
+        de 1 a 10 apenas com base no relato.
+
+        1 a 3: experiência claramente negativa
+        4 a 6: negativa ou neutra com ressalvas
+        7 a 8: predominantemente positiva
+        9 a 10: claramente positiva
+
+        Se houver nota explícita:
+        inferred_score = null.
+
+        Não calcule métricas.
+        Não recomende mudanças no produto.
+        Não invente informações.
+
+        Feedbacks:
+
+        {feedback_text}
+        """
 
     response = client.models.generate_content(
         model=settings.gemini_model,
