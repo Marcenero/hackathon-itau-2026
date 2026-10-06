@@ -9,52 +9,115 @@ import FreshnessBadge from "@/components/FreshnessBadge";
 import ValidationBadge from "@/components/ValidationBadge";
 import SquadTabs from "@/components/SquadTabs";
 
+type Survey = {
+  id: number;
+  title: string;
+  question: string;
+  survey_type: string;
+}
+
 export default function SquadPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const [modalEnviarAberto, setModalEnviarAberto] =
-    useState(false);
+  const [modalEnviarAberto, setModalEnviarAberto] = useState(false);
 
-  async function carregar() {
-    const response = await fetch(
-      `${API_URL}/surveys/1/dashboard`,
-      { cache: "no-store" }
-    );
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [selectedSurveyId, setSelectedSurveyId] = useState<number | null>(null);
 
-    setData(await response.json());
+  async function carregarPesquisas() {
+    try {
+      const response = await fetch(
+        `${API_URL}/surveys`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Não foi possível carregar as pesquisas.");
+      }
+
+      const result: Survey[] = await response.json();
+
+      setSurveys(result);
+
+      if (result.length > 0) {
+        setSelectedSurveyId(
+          (current) =>
+            current ?? result[0].id
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao carregar pesquisas:", error);
+    }
+  }
+
+  async function carregar(surveyId: number) {
+    try {
+      const response = await fetch(
+        `${API_URL}/surveys/${surveyId}/dashboard`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Não foi possível carregar o dashboard.");
+      }
+
+      const result = await response.json();
+
+      setData(result);
+    } catch (error) {
+      console.error("Erro ao carregar dashboard:", error);
+    }
   }
 
   useEffect(() => {
-    carregar();
+    carregarPesquisas();
   }, []);
 
+  useEffect(() => {
+    if (selectedSurveyId !== null) {
+      carregar(selectedSurveyId);
+    }
+  }, [selectedSurveyId]);
+
   async function analisar() {
+    if (selectedSurveyId === null) {
+      return;
+    }
+
     setLoading(true);
 
     await fetch(
-      `${API_URL}/surveys/1/analyze`,
+      `${API_URL}/surveys/${selectedSurveyId}/analyze`,
       {
         method: "POST",
       }
     );
 
-    await carregar();
+    await carregar(selectedSurveyId);
 
     setLoading(false);
   }
 
   async function gerarRelatorio() {
+    if (selectedSurveyId === null) {
+      return;
+    }
+
     setLoading(true);
 
     await fetch(
-      `${API_URL}/surveys/1/report`,
+      `${API_URL}/surveys/${selectedSurveyId}/report`,
       {
         method: "POST",
       }
     );
 
-    await carregar();
+    await carregar(selectedSurveyId);
 
     setLoading(false);
   }
@@ -76,7 +139,9 @@ export default function SquadPage() {
       }
     );
 
-    await carregar();
+    if (selectedSurveyId !== null) {
+      await carregar(selectedSurveyId);
+    }
   }
 
   if (!data) {
@@ -99,6 +164,40 @@ export default function SquadPage() {
       </p>
 
       <SquadTabs />
+
+      <section className="mt-8 rounded-2xl border border-[#E5E5E5] bg-white p-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="font-semibold text-[#231F20]">
+              Pesquisa analisada
+            </p>
+
+            <p className="mt-1 text-sm text-[#666]">
+              Escolha qual pesquisa deseja acompanhar
+              neste dashboard.
+            </p>
+          </div>
+
+          <select
+            value={selectedSurveyId ?? ""}
+            onChange={(event) =>
+              setSelectedSurveyId(
+                Number(event.target.value)
+              )
+            }
+            className="min-w-72 rounded-xl border border-[#DDD] bg-white px-4 py-3 text-sm outline-none focus:border-[#EC7000]"
+          >
+            {surveys.map((survey) => (
+              <option
+                key={survey.id}
+                value={survey.id}
+              >
+                {survey.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
 
       {data.inferred_scores_count > 0 && (
         <p className="mt-3 text-xs text-[#777]">
