@@ -7,6 +7,7 @@ import Sentiment from "@/components/Sentiment";
 import CategoryBadge from "@/components/CategoryBadge";
 import FreshnessBadge from "@/components/FreshnessBadge";
 import ValidationBadge from "@/components/ValidationBadge";
+import SquadTabs from "@/components/SquadTabs";
 
 export default function SquadPage() {
   const [data, setData] = useState<any>(null);
@@ -96,6 +97,8 @@ export default function SquadPage() {
       <p className="text-gray-500">
         Voz do cliente · Squad
       </p>
+
+      <SquadTabs />
 
       {data.inferred_scores_count > 0 && (
         <p className="mt-3 text-xs text-[#777]">

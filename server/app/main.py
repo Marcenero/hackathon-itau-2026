@@ -178,6 +178,14 @@ def dashboard(
     survey_id: int,
     db: Session = Depends(get_db),
 ):
+    survey = db.get(Survey, survey_id)
+
+    if not survey:
+        raise HTTPException(
+            status_code=404,
+            detail="Pesquisa não encontrada",
+        )
+
     responses = (
         db.query(Response)
         .filter(Response.survey_id == survey_id)
@@ -200,8 +208,8 @@ def dashboard(
     )
 
     response_by_id = {
-        r.id: r
-        for r in responses
+        response.id: response
+        for response in responses
     }
 
     qualitative_groups = {}
@@ -217,27 +225,37 @@ def dashboard(
 
         qualitative_groups[signal]["count"] += 1
 
-        if len(
-            qualitative_groups[signal]["examples"]
-        ) < 2:
-            response = response_by_id[
+        if (
+            len(
+                qualitative_groups[signal][
+                    "examples"
+                ]
+            )
+            < 2
+        ):
+            response = response_by_id.get(
                 analysis.response_id
-            ]
+            )
 
-            qualitative_groups[signal][
-                "examples"
-            ].append({
-                "response_id": response.id,
-                "text": response.text,
-                "validated":
-                    analysis.status == "reviewed",
-            })
+            if response:
+                qualitative_groups[signal][
+                    "examples"
+                ].append(
+                    {
+                        "response_id": response.id,
+                        "text": response.text,
+                        "validated": (
+                            analysis.status
+                            == "reviewed"
+                        ),
+                    }
+                )
 
     total = len(responses)
 
     analysis_by_response = {
-        a.response_id: a
-        for a in analyses
+        analysis.response_id: analysis
+        for analysis in analyses
     }
 
     scores = []
@@ -246,24 +264,27 @@ def dashboard(
     for response in responses:
         if response.score is not None:
             scores.append(response.score)
+            continue
 
-        else:
-            analysis = analysis_by_response.get(
-                response.id
+        analysis = analysis_by_response.get(
+            response.id
+        )
+
+        if (
+            analysis
+            and analysis.inferred_score is not None
+        ):
+            scores.append(
+                analysis.inferred_score
             )
 
-            if (
-                analysis
-                and analysis.inferred_score is not None
-            ):
-                scores.append(
-                    analysis.inferred_score
-                )
-
-                inferred_count += 1
+            inferred_count += 1
 
     average_score = (
-        round(sum(scores) / len(scores), 1)
+        round(
+            sum(scores) / len(scores),
+            1,
+        )
         if scores
         else None
     )
@@ -274,25 +295,33 @@ def dashboard(
         for analysis in analyses
     )
 
-    percentages = {
-        category: round(
-            count / len(analyses) * 100,
-            1,
-        )
-        for category, count in categories.items()
-    } if analyses else {}
+    percentages = (
+        {
+            category: round(
+                count / len(analyses) * 100,
+                1,
+            )
+            for category, count
+            in categories.items()
+        }
+        if analyses
+        else {}
+    )
 
     latest_report = (
         db.query(Report)
-        .filter(Report.survey_id == survey_id)
+        .filter(
+            Report.survey_id == survey_id
+        )
         .order_by(Report.id.desc())
         .first()
     )
 
-    survey = db.get(Survey, survey_id)
-
     latest_response_at = (
-        max(r.created_at for r in responses)
+        max(
+            response.created_at
+            for response in responses
+        )
         if responses
         else None
     )
@@ -300,27 +329,41 @@ def dashboard(
     freshness_status = "no_data"
 
     if latest_response_at:
-        age = datetime.utcnow() - latest_response_at
-        age_days = age.total_seconds() / 86400
+        age = (
+            datetime.utcnow()
+            - latest_response_at
+        )
 
-        ratio = age_days / survey.validity_days
+        age_days = (
+            age.total_seconds()
+            / 86400
+        )
+
+        ratio = (
+            age_days
+            / survey.validity_days
+        )
 
         if ratio <= 0.5:
             freshness_status = "current"
+
         elif ratio <= 1:
             freshness_status = "attention"
+
         else:
             freshness_status = "revalidate"
 
     reviewed_count = sum(
         1
-        for a in analyses
-        if a.status == "reviewed"
+        for analysis in analyses
+        if analysis.status == "reviewed"
     )
 
     validation_percentage = (
         round(
-            reviewed_count / len(analyses) * 100
+            reviewed_count
+            / len(analyses)
+            * 100
         )
         if analyses
         else 0
@@ -333,38 +376,52 @@ def dashboard(
         "inferred_scores_count": inferred_count,
         "analyses": [
             {
-                "id": a.id,
-                "response_id": a.response_id,
+                "id": analysis.id,
+                "response_id":
+                    analysis.response_id,
                 "category": (
-                    a.final_category
-                    or a.category
+                    analysis.final_category
+                    or analysis.category
                 ),
-                "original_category": a.category,
-                "sentiment": a.sentiment,
-                "summary": a.summary,
-                "status": a.status,
+                "original_category":
+                    analysis.category,
+                "sentiment":
+                    analysis.sentiment,
+                "summary":
+                    analysis.summary,
+                "status":
+                    analysis.status,
             }
-            for a in analyses
+            for analysis in analyses
         ],
         "report": (
             {
-                "summary": latest_report.summary,
+                "summary":
+                    latest_report.summary,
                 "investigation_question":
-                    latest_report.investigation_question,
+                    latest_report
+                    .investigation_question,
             }
             if latest_report
             else None
         ),
-        "qualitative_summary": qualitative_groups,
+        "qualitative_summary":
+            qualitative_groups,
         "freshness": {
-            "last_response_at": latest_response_at,
-            "validity_days": survey.validity_days,
-            "status": freshness_status,
+            "last_response_at":
+                latest_response_at,
+            "validity_days":
+                survey.validity_days,
+            "status":
+                freshness_status,
         },
         "validation": {
-            "reviewed": reviewed_count,
-            "total": len(analyses),
-            "percentage": validation_percentage,
+            "reviewed":
+                reviewed_count,
+            "total":
+                len(analyses),
+            "percentage":
+                validation_percentage,
         },
     }
 
